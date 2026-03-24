@@ -272,6 +272,6 @@ def _model_label(model_name: str) -> str:
         'prophet':         'Prophet',
         'bilstm':          'BiLSTM',
         'transformer':     'Transformer',
-        't2v_transformer': 'T2V-Transformer (Proposed)',
+        't2v_transformer': 'T2V-Transformer',
     }
     return labels.get(model_name, model_name)

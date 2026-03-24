@@ -63,7 +63,7 @@ class Time2Vec(nn.Module):
         k = self.out_dim - 1
         if k > 0:
             freqs = torch.exp(
-                torch.linspace(math.log(0.01), math.log(1.0), k)
+                torch.linspace(math.log(0.01), math.log(10.0), k)
             ).unsqueeze(0)          # (1, k)
             with torch.no_grad():
                 self.w.copy_(freqs)

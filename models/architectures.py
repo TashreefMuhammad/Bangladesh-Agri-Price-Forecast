@@ -4,7 +4,7 @@ Model architectures for agricultural price forecasting.
 Four models are implemented here, forming a clean ablation ladder:
   1. BiLSTM            — deep learning baseline (no temporal encoding)
   2. Transformer       — standard Transformer with fixed sinusoidal PE
-  3. T2V_Transformer   — proposed model: Transformer with Time2Vec encoding
+  3. T2V_Transformer   — ablation model: Transformer with Time2Vec encoding (Kazemi et al., 2019)
   4. NaivePersistence  — statistical floor baseline (not trained)
 
 Design philosophy for Colab free-tier compatibility:
@@ -184,22 +184,15 @@ class VanillaTransformer(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# 4. Time2Vec Transformer (proposed model)
+# 4. Time2Vec Transformer (Kazemi et al., 2019 — ablation against fixed PE)
 # ---------------------------------------------------------------------------
 
 class T2V_Transformer(nn.Module):
     """
-    Proposed model: Transformer with Time2Vec positional encoding.
+    Ablation model: Transformer with Time2Vec positional encoding (Kazemi et al., 2019).
 
-    The only architectural difference from VanillaTransformer is that
-    fixed sinusoidal PE is replaced by the learnable Time2Vec layer.
-
-    The Time2Vec output is projected to d_model and added to the
-    price embedding before the Transformer encoder — matching the
-    standard additive positional encoding convention.
-
-    This controlled substitution means results directly isolate the
-    contribution of learnable vs. fixed temporal encoding.
+    Evaluated against VanillaTransformer to isolate the contribution of learnable
+    temporal encoding vs. fixed sinusoidal encoding.
     """
 
     def __init__(

@@ -63,6 +63,17 @@ def load_commodity_csv(path: str) -> pd.DataFrame:
     df = df.reindex(full_idx).ffill().bfill()
     df.index.name = 'date'
 
+    # Range validation (paper Section 3.1): flag values outside 0.1–500 BDT/kg
+    PRICE_MIN, PRICE_MAX = 0.1, 500.0
+    n_flagged = ((df['price'] < PRICE_MIN) | (df['price'] > PRICE_MAX)).sum()
+    if n_flagged > 0:
+        import warnings
+        warnings.warn(
+            f"{path}: {n_flagged} price values outside [{PRICE_MIN}, {PRICE_MAX}] BDT/kg. "
+            f"These are retained as-is per paper Section 3.1 transparency policy.",
+            UserWarning,
+        )
+
     return df
 
 

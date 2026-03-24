@@ -48,7 +48,7 @@ def train_model(
     device:       torch.device,
     n_epochs:     int  = 100,
     lr:           float = 1e-3,
-    patience:     int  = 15,
+    patience:     int  = 20,
     use_time_idx: bool = True,
     verbose:      bool = True,
 ) -> Tuple[nn.Module, Dict]:
@@ -77,7 +77,7 @@ def train_model(
     criterion = nn.HuberLoss(delta=1.0)   # more robust to price outliers than MSE
     optimizer = Adam(model.parameters(), lr=lr, weight_decay=1e-5)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5,
-                                  patience=7, min_lr=1e-6)
+                                  patience=10, min_lr=1e-6)
 
     best_val_loss  = float('inf')
     best_model     = None
