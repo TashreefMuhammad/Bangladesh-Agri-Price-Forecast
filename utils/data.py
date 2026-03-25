@@ -43,20 +43,36 @@ DEFAULT_PRED_LEN = 14   # 2 weeks ahead
 
 def load_commodity_csv(path: str) -> pd.DataFrame:
     """
-    Load a commodity CSV with (date, price) columns.
-    Returns a DataFrame with DatetimeIndex, single 'price' column,
-    sorted ascending, daily gaps forward-filled.
+    Load a commodity CSV and return a DataFrame with DatetimeIndex and a
+    single 'price' column (retail mid-price), sorted ascending, daily gaps
+    forward-filled.
+
+    Handles two formats:
+    - 7-column AgriPriceBD format (date, product name, measurement,
+      wholesale price minimum, wholesale price maximum, retail price minimum,
+      retail price maximum): computes retail mid-price =
+      (retail price minimum + retail price maximum) / 2
+    - 2-column legacy format (date, price): uses price column directly.
     """
     df = pd.read_csv(path, parse_dates=['date'])
     df = df.dropna(subset=['date'])
     df = df.sort_values('date').set_index('date')
 
-    # Keep only the price column regardless of naming
-    price_col = [c for c in df.columns if 'price' in c.lower()]
-    if not price_col:
-        # Fall back: assume last numeric column is the price
-        price_col = [df.select_dtypes(include=[np.number]).columns[-1]]
-    df = df[[price_col[0]]].rename(columns={price_col[0]: 'price'})
+    # Detect 7-column AgriPriceBD format and compute retail mid-price
+    cols_lower = [c.lower() for c in df.columns]
+    if 'retail price minimum' in cols_lower and 'retail price maximum' in cols_lower:
+        retail_min = df.columns[cols_lower.index('retail price minimum')]
+        retail_max = df.columns[cols_lower.index('retail price maximum')]
+        df = pd.DataFrame(
+            {'price': (df[retail_min] + df[retail_max]) / 2},
+            index=df.index
+        )
+    else:
+        # Fall back: use first column with 'price' in name, or last numeric
+        price_col = [c for c in df.columns if 'price' in c.lower()]
+        if not price_col:
+            price_col = [df.select_dtypes(include=[np.number]).columns[-1]]
+        df = df[[price_col[0]]].rename(columns={price_col[0]: 'price'})
 
     # Reindex to daily, forward-fill gaps
     full_idx = pd.date_range(df.index.min(), df.index.max(), freq='D')
